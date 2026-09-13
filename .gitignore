@@ -17,6 +17,8 @@ backend/.env
 
 # Local database & temp data
 data/*.db
+data/*.db-wal
+data/*.db-shm
 data/*.sqlite
 *.sqlite3
 

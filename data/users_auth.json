@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "username": "admin",
+    "password_hash": "d4174690b085a21e3e1913e02f060dd701c4cd0e111b35f38c082eeacbd8fc35",
+    "salt": "643f316d3c0e73540c5843289dae672d",
+    "role": "admin",
+    "status": "approved",
+    "note": "Super Admin Account",
+    "created_at": "2026-09-13T08:43:41.139095",
+    "last_login": "2026-09-13T08:45:09.786072"
+  },
+  "rahul": {
+    "username": "rahul",
+    "password_hash": "80a0df728c4658d1459001d389a6ea1d10b47348e956698828d4480d89af2893",
+    "salt": "3d2676711333e7231a2df45384c740db",
+    "role": "admin",
+    "status": "approved",
+    "note": "Super Admin Account",
+    "created_at": "2026-09-13T08:43:41.190381",
+    "last_login": null
+  }
+}

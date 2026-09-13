@@ -14,6 +14,7 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import streamlit as st
 import streamlit.components.v1 as components
+import auth_manager
 
 # ── Page Configuration ─────────────────────────────────────────────
 st.set_page_config(
@@ -335,6 +336,97 @@ def run_python_backtest(
     }
 
 
+# ── Authentication Gate ────────────────────────────────────────────
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+    st.session_state["username"] = None
+    st.session_state["role"] = None
+
+if not st.session_state["authenticated"]:
+    # Render Login / Access Request screen
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-radius: 12px; color: white;">
+            <span style="font-size: 42px;">⚡</span>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #F8FAFC;">BTC Options & Alpha Terminal</h1>
+            <p style="color: #94A3B8; font-size: 13px; margin-top: 6px;">Delta Exchange Institutional Derivatives Suite & Quantitative Backtester</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        login_tab, signup_tab = st.tabs(["🔑 Sign In", "📝 Request Access"])
+
+        with login_tab:
+            st.markdown("<div style='padding: 8px 0;'>", unsafe_allow_html=True)
+            with st.form("form_signin"):
+                st.markdown("#### Account Sign In")
+                u_in = st.text_input("Username", placeholder="e.g. admin or rahul").strip()
+                p_in = st.text_input("Password", type="password", placeholder="••••••••")
+                btn_login = st.form_submit_button("🚀 Enter Platform", use_container_width=True)
+
+                if btn_login:
+                    if not u_in or not p_in:
+                        st.error("Please enter both username and password.")
+                    else:
+                        ok, msg, u_data = auth_manager.authenticate_user(u_in, p_in)
+                        if ok and u_data:
+                            st.session_state["authenticated"] = True
+                            st.session_state["username"] = u_data["username"]
+                            st.session_state["role"] = u_data.get("role", "user")
+                            st.success(f"Welcome, {u_data['username']}! Opening platform...")
+                            st.rerun()
+                        else:
+                            st.error(f"❌ {msg}")
+
+            st.info("💡 **Admin Access**: Sign in with `admin` or `rahul` (default password: `DeltaAdmin2026!`).")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with signup_tab:
+            st.markdown("<div style='padding: 8px 0;'>", unsafe_allow_html=True)
+            with st.form("form_request_access"):
+                st.markdown("#### Request Access Permission")
+                st.caption("New accounts require administrator approval before logging in.")
+                req_u = st.text_input("Desired Username", placeholder="e.g. quant_trader").strip()
+                req_note = st.text_input("Your Name / Organization", placeholder="e.g. Rahul - Options Analyst").strip()
+                req_p1 = st.text_input("Create Password", type="password", placeholder="Minimum 6 characters")
+                req_p2 = st.text_input("Confirm Password", type="password", placeholder="Repeat password")
+                btn_req = st.form_submit_button("📩 Submit Access Request", use_container_width=True)
+
+                if btn_req:
+                    if not req_u or not req_p1:
+                        st.error("Username and password are required.")
+                    elif req_p1 != req_p2:
+                        st.error("Passwords do not match.")
+                    else:
+                        ok, msg = auth_manager.register_user(req_u, req_p1, req_note)
+                        if ok:
+                            st.success(f"✅ {msg}")
+                        else:
+                            st.error(f"❌ {msg}")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.stop()
+
+
+# ── Authenticated User Navigation & Sidebar ────────────────────────
+role_title = "🛡️ Administrator" if st.session_state.get("role") == "admin" else "👤 Member"
+st.sidebar.markdown(f"""
+<div style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:12px; margin-bottom:12px;">
+    <div style="font-size:10px; color:#64748B; text-transform:uppercase; font-weight:700;">Active User</div>
+    <div style="font-size:16px; font-weight:700; color:#0F172A; margin:2px 0;">{st.session_state.get('username')}</div>
+    <span style="background:#E2E8F0; color:#334155; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:600;">{role_title}</span>
+</div>
+""", unsafe_allow_html=True)
+
+if st.sidebar.button("🚪 Sign Out", use_container_width=True):
+    st.session_state["authenticated"] = False
+    st.session_state["username"] = None
+    st.session_state["role"] = None
+    st.rerun()
+
+st.sidebar.markdown("---")
+
 # ── Main Application ───────────────────────────────────────────────
 spot_val, fund_val, change_val = fetch_live_spot()
 
@@ -363,12 +455,23 @@ c5.metric("Data Range", "1000 Days", "Dec 2023 – Sep 2026")
 st.markdown("---")
 
 # Navigation Tabs
-tab_full, tab_native, tab_chain, tab_funding = st.tabs([
+is_admin = st.session_state.get("role") == "admin"
+tab_titles = [
     "🖥️ Full Interactive Dashboard (HTML/JS)",
     "📊 Python Strategy Backtester",
     "📈 Live Option Chain & Greeks",
     "⚡ Funding Rate Harvest Analyzer"
-])
+]
+if is_admin:
+    tab_titles.append("🛡️ Admin & Permissions")
+
+tabs = st.tabs(tab_titles)
+tab_full = tabs[0]
+tab_native = tabs[1]
+tab_chain = tabs[2]
+tab_funding = tabs[3]
+if is_admin:
+    tab_admin = tabs[4]
 
 # ── TAB 1: FULL EMBEDDED DASHBOARD ────────────────────────────────
 with tab_full:
@@ -637,3 +740,114 @@ with tab_funding:
     r1.metric("Projected Yield", f"{annual_yield * 100:.1f}% Ann.", f"{daily_yield*100:.3f}% / day")
     r2.metric(f"Expected Return ({arb_days}d)", f"${expected_pnl:,.2f}", f"+{(expected_pnl/arb_cap)*100:.1f}%")
     r3.metric("Final Portfolio", f"${arb_cap + expected_pnl:,.2f}")
+
+# ── TAB 5: ADMIN & PERMISSION CONTROL ──────────────────────────────
+if is_admin:
+    with tab_admin:
+        st.subheader("🛡️ User Access & Permission Management")
+        st.caption("Review access requests, grant/revoke user logins, and manage platform permissions.")
+
+        all_users = auth_manager.list_users()
+        pending_users = [u for u in all_users if u["status"] == "pending"]
+        approved_users = [u for u in all_users if u["status"] == "approved"]
+
+        # Metric cards
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Total Users", len(all_users))
+        m2.metric("Pending Approvals", len(pending_users), delta=f"{len(pending_users)} waiting" if pending_users else "All Reviewed", delta_color="inverse" if pending_users else "normal")
+        m3.metric("Approved Members", len(approved_users))
+
+        st.markdown("---")
+
+        # Section: Pending Requests Queue
+        st.markdown("### ⏳ Pending Access Requests")
+        if not pending_users:
+            st.success("✅ No pending access requests. All registered users are approved or reviewed.")
+        else:
+            for pu in pending_users:
+                p_uname = pu["username"]
+                p_note = pu.get("note", "No note provided")
+                p_date = pu.get("created_at", "")
+                with st.container():
+                    col_info, col_act1, col_act2 = st.columns([3, 1, 1])
+                    with col_info:
+                        st.markdown(f"👤 **`{p_uname}`** &nbsp;|&nbsp; *{p_note}* &nbsp;|&nbsp; <span style='color:#64748B;font-size:12px'>Requested: {p_date}</span>", unsafe_allow_html=True)
+                    with col_act1:
+                        if st.button(f"✅ Approve Access", key=f"app_{p_uname}", use_container_width=True):
+                            auth_manager.approve_user(p_uname)
+                            st.success(f"Granted access to {p_uname}!")
+                            st.rerun()
+                    with col_act2:
+                        if st.button(f"❌ Decline", key=f"rej_{p_uname}", use_container_width=True):
+                            auth_manager.reject_user(p_uname)
+                            st.warning(f"Declined {p_uname}.")
+                            st.rerun()
+                st.markdown("<hr style='margin:8px 0; border:0; border-top:1px solid #E2E8F0;'>", unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # Section: User Directory
+        st.markdown("### 👥 User Directory")
+        df_users = pd.DataFrame(all_users)
+        if not df_users.empty:
+            st.dataframe(df_users, use_container_width=True, height=220)
+
+        # Quick User Actions
+        col_act_left, col_act_right = st.columns(2)
+        with col_act_left:
+            st.markdown("#### ⚡ Revoke or Re-Approve Member")
+            non_admin_users = [u["username"] for u in all_users if u["role"] != "admin"]
+            if non_admin_users:
+                sel_user = st.selectbox("Select Member", non_admin_users)
+                act_c1, act_c2, act_c3 = st.columns(3)
+                if act_c1.button("Grant Access", key="btn_grant", use_container_width=True):
+                    auth_manager.approve_user(sel_user)
+                    st.success(f"Granted access to {sel_user}.")
+                    st.rerun()
+                if act_c2.button("Revoke Access", key="btn_revoke", use_container_width=True):
+                    auth_manager.reject_user(sel_user)
+                    st.warning(f"Revoked access from {sel_user}.")
+                    st.rerun()
+                if act_c3.button("Delete User", key="btn_del", use_container_width=True):
+                    auth_manager.delete_user(sel_user)
+                    st.info(f"Deleted user {sel_user}.")
+                    st.rerun()
+            else:
+                st.caption("No non-admin users registered yet.")
+
+        with col_act_right:
+            st.markdown("#### ➕ Add Pre-Approved User")
+            with st.form("form_add_direct"):
+                new_u = st.text_input("New Username", placeholder="e.g. analyst1").strip()
+                new_p = st.text_input("Password", type="password", placeholder="Min 6 chars")
+                new_role = st.selectbox("Role", ["user", "admin"])
+                new_note = st.text_input("Note", placeholder="e.g. Senior Trader")
+                if st.form_submit_button("Create & Pre-Approve", use_container_width=True):
+                    if new_u and new_p:
+                        ok, msg = auth_manager.add_user_direct(new_u, new_p, new_role, new_note)
+                        if ok:
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
+                    else:
+                        st.error("Please provide both username and password.")
+
+        st.markdown("---")
+        st.markdown("#### 🔑 Change Your Admin Password")
+        with st.form("form_change_pwd"):
+            curr_user = st.session_state.get("username", "admin")
+            pwd_new = st.text_input("New Password", type="password", placeholder="Enter new password")
+            pwd_conf = st.text_input("Confirm New Password", type="password", placeholder="Confirm new password")
+            if st.form_submit_button("Update Password"):
+                if not pwd_new or len(pwd_new) < 6:
+                    st.error("Password must be at least 6 characters.")
+                elif pwd_new != pwd_conf:
+                    st.error("Passwords do not match.")
+                else:
+                    ok, msg = auth_manager.change_password(curr_user, pwd_new)
+                    if ok:
+                        st.success("✅ Password updated successfully!")
+                    else:
+                        st.error(msg)
+
