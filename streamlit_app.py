@@ -27,36 +27,236 @@ st.set_page_config(
 # Custom CSS for styling
 st.markdown("""
 <style>
-    .metric-card {
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 14px 18px;
-        margin-bottom: 10px;
-    }
-    .metric-card h4 {
-        margin: 0;
-        font-size: 11px;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .metric-card p {
-        margin: 4px 0 0 0;
-        font-size: 22px;
-        font-weight: 700;
-        color: #0F172A;
-    }
-    .metric-card span.pos { color: #16A34A; font-weight: 600; }
-    .metric-card span.neg { color: #DC2626; font-weight: 600; }
-    .badge-live {
-        background: #DCFCE7;
-        color: #15803D;
-        padding: 3px 8px;
-        border-radius: 99px;
-        font-size: 12px;
-        font-weight: 600;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #F8FAFC;
+}
+
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Monospace numerals */
+.mono-num, [data-testid="stMetricValue"], table td {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* App Background */
+.stApp {
+    background: #0B0F19;
+}
+
+/* Top Hero Header */
+.terminal-header {
+    background: linear-gradient(180deg, rgba(22, 31, 54, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+}
+
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34D399;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 10px #10B981;
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Modern Metric Cards */
+div[data-testid="stMetric"] {
+    background: linear-gradient(180deg, #131B2E 0%, #0D1322 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    transition: all 0.2s ease !important;
+}
+
+div[data-testid="stMetric"]:hover {
+    border-color: rgba(16, 185, 129, 0.35) !important;
+    transform: translateY(-2px);
+}
+
+div[data-testid="stMetricLabel"] {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: #94A3B8 !important;
+}
+
+div[data-testid="stMetricValue"] {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #F8FAFC !important;
+}
+
+/* Streamlit Tabs Navigation Bar */
+div[data-baseweb="tab-list"] {
+    background: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 6px !important;
+    gap: 6px !important;
+    margin-bottom: 24px !important;
+}
+
+div[data-baseweb="tab"] {
+    border-radius: 8px !important;
+    padding: 8px 18px !important;
+    color: #94A3B8 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+div[data-baseweb="tab"]:hover {
+    color: #F8FAFC !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+div[aria-selected="true"] {
+    color: #10B981 !important;
+    background: rgba(16, 185, 129, 0.14) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Primary Button Styling */
+button[kind="primary"], .stButton > button {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    color: #022C22 !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px 22px !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+button[kind="primary"]:hover, .stButton > button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5) !important;
+    color: #022C22 !important;
+}
+
+/* Sidebar Styling */
+section[data-testid="stSidebar"] {
+    background: #0A0D16 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Option Chain Custom Table */
+.chain-wrapper {
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: #0D1322;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.chain-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+}
+
+.chain-table th {
+    background: #131B2E;
+    color: #94A3B8;
+    padding: 12px 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+}
+
+.chain-table th.call-hdr {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34D399;
+    border-bottom: 2px solid #10B981;
+}
+
+.chain-table th.strike-hdr {
+    background: rgba(245, 158, 11, 0.15);
+    color: #FBBF24;
+    border-bottom: 2px solid #F59E0B;
+}
+
+.chain-table th.put-hdr {
+    background: rgba(244, 63, 94, 0.15);
+    color: #FB7185;
+    border-bottom: 2px solid #F43F5E;
+}
+
+.chain-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    white-space: nowrap;
+    text-align: center;
+}
+
+.chain-table tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.chain-table tr.atm-row {
+    background: rgba(245, 158, 11, 0.08);
+    border-top: 1px solid rgba(245, 158, 11, 0.3);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.strike-pill {
+    background: #1E293B;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: #F8FAFC;
+    display: inline-block;
+}
+
+.strike-pill.atm {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid #F59E0B;
+    color: #FBBF24;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.delta-call { color: #34D399; font-weight: 600; }
+.delta-put { color: #FB7185; font-weight: 600; }
+.mark-px { font-weight: 700; color: #F1F5F9; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -347,11 +547,16 @@ if not st.session_state["authenticated"]:
     col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
     with col_l2:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-radius: 12px; color: white;">
-            <span style="font-size: 42px;">⚡</span>
-            <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #F8FAFC;">BTC Options & Alpha Terminal</h1>
-            <p style="color: #94A3B8; font-size: 13px; margin-top: 6px;">Delta Exchange Institutional Derivatives Suite & Quantitative Backtester</p>
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 25px; padding: 28px 24px; background: linear-gradient(180deg, rgba(22, 31, 54, 0.85) 0%, rgba(13, 19, 34, 0.95) 100%); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 18px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.1); backdrop-filter: blur(16px);">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 50%; font-size: 28px; margin-bottom: 12px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);">
+                ⚡
+            </div>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.02em;">BTC Options & Alpha Terminal</h1>
+            <p style="color: #94A3B8; font-size: 13px; margin-top: 6px;">Delta Exchange Institutional Derivatives Suite • Live Greeks • 1,000D Backtesting</p>
+            <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); padding: 4px 14px; border-radius: 99px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #34D399;">
+                <span class="pulse-dot"></span> LIVE PROTOCOL READY
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -412,10 +617,10 @@ if not st.session_state["authenticated"]:
 # ── Authenticated User Navigation & Sidebar ────────────────────────
 role_title = "🛡️ Administrator" if st.session_state.get("role") == "admin" else "👤 Member"
 st.sidebar.markdown(f"""
-<div style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:12px; margin-bottom:12px;">
-    <div style="font-size:10px; color:#64748B; text-transform:uppercase; font-weight:700;">Active User</div>
-    <div style="font-size:16px; font-weight:700; color:#0F172A; margin:2px 0;">{st.session_state.get('username')}</div>
-    <span style="background:#E2E8F0; color:#334155; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:600;">{role_title}</span>
+<div style="background:linear-gradient(180deg, #131B2E 0%, #0D1322 100%); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 4px 15px rgba(0,0,0,0.25);">
+    <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; font-weight:700; letter-spacing:0.06em;">Active Account</div>
+    <div style="font-size:18px; font-weight:800; color:#F8FAFC; margin:4px 0;">{st.session_state.get('username')}</div>
+    <span style="background:rgba(16,185,129,0.15); color:#34D399; font-size:11px; padding:3px 8px; border-radius:4px; font-weight:700; border:1px solid rgba(16,185,129,0.3);">{role_title}</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -430,19 +635,33 @@ st.sidebar.markdown("---")
 # ── Main Application ───────────────────────────────────────────────
 spot_val, fund_val, change_val = fetch_live_spot()
 
-# Top Navigation Bar
-col_t1, col_t2 = st.columns([3, 1])
-with col_t1:
-    st.title("⚡ BTC Options & Alpha Backtester")
-    st.caption("Delta Exchange Quantitative Derivative Strategies — Live Pricing, Black-Scholes Engine, Paper Trading & Scheduling")
-with col_t2:
-    st.markdown(
-        f"<div style='text-align:right;padding-top:10px'>"
-        f"<span class='badge-live'>● LIVE DELTA FEED</span><br>"
-        f"<span style='font-size:20px;font-weight:700'>${spot_val:,.2f}</span>"
-        f"</div>",
-        unsafe_allow_html=True
-    )
+# Top Hero Navigation Bar
+st.markdown(f"""
+<div class="terminal-header">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+            <div class="brand-badge">
+                <span class="pulse-dot"></span> DELTA EXCHANGE OPTIONS API • LIVE FEED
+            </div>
+            <h1 style="margin:8px 0 4px 0; font-size:26px; font-weight:800; letter-spacing:-0.02em; color:#F8FAFC;">
+                ⚡ BTC Options & Quantitative Alpha Backtester
+            </h1>
+            <p style="margin:0; font-size:13px; color:#94A3B8;">
+                Black-Scholes Options Engine • Multi-Leg Backtesting • Deribit & Delta Greek Analytics • Real-Time Paper Trading
+            </p>
+        </div>
+        <div style="text-align:right; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); padding:10px 18px; border-radius:12px;">
+            <div style="font-size:11px; color:#94A3B8; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">BTC / USDT Spot</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:24px; font-weight:800; color:#10B981; margin:2px 0;">
+                ${spot_val:,.2f}
+            </div>
+            <span style="background:rgba(16,185,129,0.15); color:#34D399; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; font-family:'JetBrains Mono',monospace;">
+                {change_val:+.2f}% (24h)
+            </span>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # Market Stat Bar
 c1, c2, c3 = st.columns(3)
@@ -450,7 +669,7 @@ c1.metric("BTC / USDT Spot", f"${spot_val:,.2f}", f"{change_val:+.2f}%")
 c2.metric("ATM IV (0-DTE)", "14.1%", "Low Contango")
 c3.metric("Data Range", "1000 Days", "Dec 2023 – Sep 2026")
 
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Navigation Tabs
 is_admin = st.session_state.get("role") == "admin"
@@ -606,12 +825,17 @@ with tab_native:
                     line=dict(color="#94A3B8", dash="dash", width=1)
                 ))
                 fig_eq.update_layout(
-                    title="Equity Curve Over Time",
-                    xaxis_title="Date",
-                    yaxis_title="Portfolio Equity ($)",
+                    title=dict(text="📈 Strategy Equity Curve Over Time", font=dict(family="Plus Jakarta Sans", size=16, color="#F8FAFC")),
+                    template="plotly_dark",
+                    paper_bgcolor="#0D1322",
+                    plot_bgcolor="#0D1322",
+                    font=dict(family="JetBrains Mono", color="#94A3B8"),
+                    xaxis=dict(gridcolor="rgba(255,255,255,0.05)", zerolinecolor="rgba(255,255,255,0.1)", showline=True, linecolor="rgba(255,255,255,0.1)"),
+                    yaxis=dict(gridcolor="rgba(255,255,255,0.05)", zerolinecolor="rgba(255,255,255,0.1)", showline=True, linecolor="rgba(255,255,255,0.1)"),
                     height=380,
-                    margin=dict(l=20, r=20, t=40, b=20),
-                    hovermode="x unified"
+                    margin=dict(l=20, r=20, t=50, b=20),
+                    hovermode="x unified",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
                 )
                 st.plotly_chart(fig_eq, use_container_width=True)
 
@@ -627,11 +851,15 @@ with tab_native:
                     name="Trade P&L"
                 ))
                 fig_bars.update_layout(
-                    title="P&L Distribution per Trade",
-                    xaxis_title="Trade Number",
-                    yaxis_title="P&L ($)",
+                    title=dict(text="📊 Realized P&L per Trade ($)", font=dict(family="Plus Jakarta Sans", size=16, color="#F8FAFC")),
+                    template="plotly_dark",
+                    paper_bgcolor="#0D1322",
+                    plot_bgcolor="#0D1322",
+                    font=dict(family="JetBrains Mono", color="#94A3B8"),
+                    xaxis=dict(gridcolor="rgba(255,255,255,0.05)", zerolinecolor="rgba(255,255,255,0.1)"),
+                    yaxis=dict(gridcolor="rgba(255,255,255,0.05)", zerolinecolor="rgba(255,255,255,0.1)"),
                     height=280,
-                    margin=dict(l=20, r=20, t=40, b=20)
+                    margin=dict(l=20, r=20, t=50, b=20)
                 )
                 st.plotly_chart(fig_bars, use_container_width=True)
 
@@ -685,7 +913,9 @@ with tab_chain:
             }
 
         sorted_strikes = sorted(strike_map.keys())
-        table_data = []
+        closest_strike = min(sorted_strikes, key=lambda x: abs(x - spot_val)) if sorted_strikes else 0
+
+        rows_html = []
         for s in sorted_strikes:
             c = strike_map[s].get("C", {})
             p = strike_map[s].get("P", {})
@@ -700,18 +930,53 @@ with tab_chain:
             p_iv = p.get("iv", 0.0)
             p_oi = p.get("oi", 0)
 
-            table_data.append({
-                "Call OI": f"{c_oi:,}" if c_oi else "—",
-                "Call IV %": f"{c_iv:.1f}%" if c_iv > 0 else "—",
-                "Call Delta": f"{c_delta:+.2f}" if c_delta != 0.0 else "—",
-                "Call Mark ($)": f"${c_mark:,.2f}" if c_mark > 0 else "—",
-                "STRIKE": f"${s:,}",
-                "Put Mark ($)": f"${p_mark:,.2f}" if p_mark > 0 else "—",
-                "Put Delta": f"{p_delta:+.2f}" if p_delta != 0.0 else "—",
-                "Put IV %": f"{p_iv:.1f}%" if p_iv > 0 else "—",
-                "Put OI": f"{p_oi:,}" if p_oi else "—"
-            })
-        st.dataframe(pd.DataFrame(table_data), use_container_width=True, height=450)
+            is_atm = (s == closest_strike)
+            row_cls = "atm-row" if is_atm else ""
+            pill_cls = "strike-pill atm" if is_atm else "strike-pill"
+            atm_label = " <span style='font-size:10px; color:#F59E0B; font-weight:800; letter-spacing:0.04em;'>ATM</span>" if is_atm else ""
+
+            rows_html.append(f"""
+            <tr class="{row_cls}">
+                <td style="color:#94A3B8;">{f"{c_oi:,}" if c_oi else "—"}</td>
+                <td style="color:#CBD5E1;">{f"{c_iv:.1f}%" if c_iv > 0 else "—"}</td>
+                <td class="delta-call">{f"{c_delta:+.2f}" if c_delta != 0 else "—"}</td>
+                <td class="mark-px" style="color:#34D399;">{f"${c_mark:,.2f}" if c_mark > 0 else "—"}</td>
+                <td><span class="{pill_cls}">${s:,}{atm_label}</span></td>
+                <td class="mark-px" style="color:#FB7185;">{f"${p_mark:,.2f}" if p_mark > 0 else "—"}</td>
+                <td class="delta-put">{f"{p_delta:+.2f}" if p_delta != 0 else "—"}</td>
+                <td style="color:#CBD5E1;">{f"{p_iv:.1f}%" if p_iv > 0 else "—"}</td>
+                <td style="color:#94A3B8;">{f"{p_oi:,}" if p_oi else "—"}</td>
+            </tr>
+            """)
+
+        table_html = f"""
+        <div class="chain-wrapper">
+            <table class="chain-table">
+                <thead>
+                    <tr>
+                        <th colspan="4" class="call-hdr">🟢 CALL OPTIONS (BULLISH / VOL)</th>
+                        <th class="strike-hdr">STRIKE PRICE</th>
+                        <th colspan="4" class="put-hdr">🔴 PUT OPTIONS (BEARISH / VOL)</th>
+                    </tr>
+                    <tr>
+                        <th>Call OI</th>
+                        <th>Call IV %</th>
+                        <th>Delta (Δ)</th>
+                        <th>Mark Price ($)</th>
+                        <th class="strike-hdr">Strike Price</th>
+                        <th>Mark Price ($)</th>
+                        <th>Delta (Δ)</th>
+                        <th>Put IV %</th>
+                        <th>Put OI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(rows_html)}
+                </tbody>
+            </table>
+        </div>
+        """
+        st.markdown(table_html, unsafe_allow_html=True)
 
 # ── TAB 4: FUNDING ARBITRAGE ANALYZER ──────────────────────────────
 with tab_funding:
