@@ -61,6 +61,24 @@ st.markdown("""
 
 
 # ── Data Helpers ───────────────────────────────────────────────────
+def safe_float(val, default=0.0):
+    if val is None or val == "" or val == "—" or val == "-":
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
+def safe_int(val, default=0):
+    if val is None or val == "" or val == "—" or val == "-":
+        return default
+    try:
+        return int(float(val))
+    except (ValueError, TypeError):
+        return default
+
+
 @st.cache_data(ttl=60)
 def fetch_live_spot():
     """Fetch live BTC spot and funding rate from Delta Exchange."""
@@ -543,21 +561,26 @@ with tab_chain:
         selected_exp = st.selectbox("Select Expiry Date", exp_keys)
 
         exp_tickers = by_exp.get(selected_exp, [])
-        rows = []
         strike_map = {}
         for t in exp_tickers:
-            parts = t.get("symbol", "").split("-")
+            sym = t.get("symbol", "")
+            parts = sym.split("-")
+            if len(parts) < 4:
+                continue
             ctype = parts[0]
-            strike = int(float(t.get("strike_price") or 0))
+            try:
+                strike = int(float(t.get("strike_price") or 0))
+            except Exception:
+                continue
             quotes = t.get("quotes") or {}
             greeks = t.get("greeks") or {}
             strike_map.setdefault(strike, {})[ctype] = {
-                "mark": t.get("mark_price", 0),
-                "bid": quotes.get("best_bid", 0),
-                "ask": quotes.get("best_ask", 0),
-                "iv": float(quotes.get("mark_iv") or 0) * 100,
-                "delta": greeks.get("delta", 0),
-                "oi": t.get("oi", 0)
+                "mark": safe_float(t.get("mark_price")),
+                "bid": safe_float(quotes.get("best_bid")),
+                "ask": safe_float(quotes.get("best_ask")),
+                "iv": safe_float(quotes.get("mark_iv")) * 100,
+                "delta": safe_float(greeks.get("delta")),
+                "oi": safe_int(t.get("oi"))
             }
 
         sorted_strikes = sorted(strike_map.keys())
@@ -565,16 +588,27 @@ with tab_chain:
         for s in sorted_strikes:
             c = strike_map[s].get("C", {})
             p = strike_map[s].get("P", {})
+            
+            c_oi = c.get("oi", 0)
+            c_iv = c.get("iv", 0.0)
+            c_delta = c.get("delta", 0.0)
+            c_mark = c.get("mark", 0.0)
+
+            p_mark = p.get("mark", 0.0)
+            p_delta = p.get("delta", 0.0)
+            p_iv = p.get("iv", 0.0)
+            p_oi = p.get("oi", 0)
+
             table_data.append({
-                "Call OI": c.get("oi", "—"),
-                "Call IV %": f"{c.get('iv', 0):.1f}%" if c.get("iv") else "—",
-                "Call Delta": round(c.get("delta", 0), 2) if c.get("delta") else "—",
-                "Call Mark ($)": c.get("mark", "—"),
-                "STRIKE": s,
-                "Put Mark ($)": p.get("mark", "—"),
-                "Put Delta": round(p.get("delta", 0), 2) if p.get("delta") else "—",
-                "Put IV %": f"{p.get('iv', 0):.1f}%" if p.get("iv") else "—",
-                "Put OI": p.get("oi", "—")
+                "Call OI": f"{c_oi:,}" if c_oi else "—",
+                "Call IV %": f"{c_iv:.1f}%" if c_iv > 0 else "—",
+                "Call Delta": f"{c_delta:+.2f}" if c_delta != 0.0 else "—",
+                "Call Mark ($)": f"${c_mark:,.2f}" if c_mark > 0 else "—",
+                "STRIKE": f"${s:,}",
+                "Put Mark ($)": f"${p_mark:,.2f}" if p_mark > 0 else "—",
+                "Put Delta": f"{p_delta:+.2f}" if p_delta != 0.0 else "—",
+                "Put IV %": f"{p_iv:.1f}%" if p_iv > 0 else "—",
+                "Put OI": f"{p_oi:,}" if p_oi else "—"
             })
         st.dataframe(pd.DataFrame(table_data), use_container_width=True, height=450)
 
