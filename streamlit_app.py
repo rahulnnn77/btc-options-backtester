@@ -445,12 +445,10 @@ with col_t2:
     )
 
 # Market Stat Bar
-c1, c2, c3, c4, c5 = st.columns(5)
+c1, c2, c3 = st.columns(3)
 c1.metric("BTC / USDT Spot", f"${spot_val:,.2f}", f"{change_val:+.2f}%")
-c2.metric("8h Funding Rate", f"{fund_val*100:.4f}%", "Perpetual")
-c3.metric("Annualized Funding", f"{fund_val*3*365*100:.1f}%", "Cash & Carry")
-c4.metric("ATM IV (0-DTE)", "14.1%", "Low Contango")
-c5.metric("Data Range", "1000 Days", "Dec 2023 – Sep 2026")
+c2.metric("ATM IV (0-DTE)", "14.1%", "Low Contango")
+c3.metric("Data Range", "1000 Days", "Dec 2023 – Sep 2026")
 
 st.markdown("---")
 
