@@ -584,7 +584,6 @@ if not st.session_state["authenticated"]:
                         else:
                             st.error(f"❌ {msg}")
 
-            st.info("💡 **Admin Access**: Sign in with `admin` or `rahul` (default password: `DeltaAdmin2026!`).")
             st.markdown("</div>", unsafe_allow_html=True)
 
         with signup_tab:
