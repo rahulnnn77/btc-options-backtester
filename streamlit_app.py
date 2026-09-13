@@ -914,11 +914,12 @@ with tab_chain:
         sorted_strikes = sorted(strike_map.keys())
         closest_strike = min(sorted_strikes, key=lambda x: abs(x - spot_val)) if sorted_strikes else 0
 
+        # Render institutional Option Chain HTML Component
         rows_html = []
         for s in sorted_strikes:
             c = strike_map[s].get("C", {})
             p = strike_map[s].get("P", {})
-            
+
             c_oi = c.get("oi", 0)
             c_iv = c.get("iv", 0.0)
             c_delta = c.get("delta", 0.0)
@@ -932,50 +933,154 @@ with tab_chain:
             is_atm = (s == closest_strike)
             row_cls = "atm-row" if is_atm else ""
             pill_cls = "strike-pill atm" if is_atm else "strike-pill"
-            atm_label = " <span style='font-size:10px; color:#F59E0B; font-weight:800; letter-spacing:0.04em;'>ATM</span>" if is_atm else ""
+            atm_label = " <span class='atm-tag'>ATM</span>" if is_atm else ""
 
-            rows_html.append(f"""
-            <tr class="{row_cls}">
-                <td style="color:#94A3B8;">{f"{c_oi:,}" if c_oi else "—"}</td>
-                <td style="color:#CBD5E1;">{f"{c_iv:.1f}%" if c_iv > 0 else "—"}</td>
-                <td class="delta-call">{f"{c_delta:+.2f}" if c_delta != 0 else "—"}</td>
-                <td class="mark-px" style="color:#34D399;">{f"${c_mark:,.2f}" if c_mark > 0 else "—"}</td>
-                <td><span class="{pill_cls}">${s:,}{atm_label}</span></td>
-                <td class="mark-px" style="color:#FB7185;">{f"${p_mark:,.2f}" if p_mark > 0 else "—"}</td>
-                <td class="delta-put">{f"{p_delta:+.2f}" if p_delta != 0 else "—"}</td>
-                <td style="color:#CBD5E1;">{f"{p_iv:.1f}%" if p_iv > 0 else "—"}</td>
-                <td style="color:#94A3B8;">{f"{p_oi:,}" if p_oi else "—"}</td>
+            rows_html.append(
+                f'<tr class="{row_cls}">'
+                f'<td class="c-oi">{f"{c_oi:,}" if c_oi else "—"}</td>'
+                f'<td class="c-iv">{f"{c_iv:.1f}%" if c_iv > 0 else "—"}</td>'
+                f'<td class="c-delta">{f"{c_delta:+.2f}" if c_delta != 0 else "—"}</td>'
+                f'<td class="c-mark">{f"${c_mark:,.2f}" if c_mark > 0 else "—"}</td>'
+                f'<td class="c-strike"><span class="{pill_cls}">${s:,}{atm_label}</span></td>'
+                f'<td class="p-mark">{f"${p_mark:,.2f}" if p_mark > 0 else "—"}</td>'
+                f'<td class="p-delta">{f"{p_delta:+.2f}" if p_delta != 0 else "—"}</td>'
+                f'<td class="p-iv">{f"{p_iv:.1f}%" if p_iv > 0 else "—"}</td>'
+                f'<td class="p-oi">{f"{p_oi:,}" if p_oi else "—"}</td>'
+                f'</tr>'
+            )
+
+        full_chain_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
+body {{
+    background: #0B0F19;
+    color: #F8FAFC;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 0;
+}}
+.chain-container {{
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0D1322;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}}
+table {{
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}}
+thead {{
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}}
+th {{
+    padding: 10px 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    background: #131B2E;
+    color: #94A3B8;
+}}
+th.call-hdr {{
+    background: rgba(16, 185, 129, 0.18);
+    color: #34D399;
+    border-bottom: 2px solid #10B981;
+}}
+th.strike-hdr {{
+    background: rgba(245, 158, 11, 0.18);
+    color: #FBBF24;
+    border-bottom: 2px solid #F59E0B;
+}}
+th.put-hdr {{
+    background: rgba(244, 63, 94, 0.18);
+    color: #FB7185;
+    border-bottom: 2px solid #F43F5E;
+}}
+td {{
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    white-space: nowrap;
+}}
+tr:hover {{
+    background: rgba(255, 255, 255, 0.04);
+}}
+tr.atm-row {{
+    background: rgba(245, 158, 11, 0.12);
+    border-top: 1px solid rgba(245, 158, 11, 0.4);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+}}
+.strike-pill {{
+    background: #1E293B;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: #F8FAFC;
+    display: inline-block;
+}}
+.strike-pill.atm {{
+    background: rgba(245, 158, 11, 0.25);
+    border-color: #F59E0B;
+    color: #FBBF24;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}}
+.atm-tag {{
+    font-size: 9px;
+    background: #F59E0B;
+    color: #000;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 800;
+    margin-left: 4px;
+}}
+.c-oi, .p-oi {{ color: #94A3B8; }}
+.c-iv, .p-iv {{ color: #CBD5E1; }}
+.c-delta {{ color: #34D399; font-weight: 700; }}
+.p-delta {{ color: #FB7185; font-weight: 700; }}
+.c-mark {{ color: #34D399; font-weight: 700; }}
+.p-mark {{ color: #FB7185; font-weight: 700; }}
+</style>
+</head>
+<body>
+<div class="chain-container">
+    <table>
+        <thead>
+            <tr>
+                <th colspan="4" class="call-hdr">🟢 CALL OPTIONS (BULLISH)</th>
+                <th class="strike-hdr">STRIKE</th>
+                <th colspan="4" class="put-hdr">🔴 PUT OPTIONS (BEARISH)</th>
             </tr>
-            """)
-
-        table_html = f"""
-        <div class="chain-wrapper">
-            <table class="chain-table">
-                <thead>
-                    <tr>
-                        <th colspan="4" class="call-hdr">🟢 CALL OPTIONS (BULLISH / VOL)</th>
-                        <th class="strike-hdr">STRIKE PRICE</th>
-                        <th colspan="4" class="put-hdr">🔴 PUT OPTIONS (BEARISH / VOL)</th>
-                    </tr>
-                    <tr>
-                        <th>Call OI</th>
-                        <th>Call IV %</th>
-                        <th>Delta (Δ)</th>
-                        <th>Mark Price ($)</th>
-                        <th class="strike-hdr">Strike Price</th>
-                        <th>Mark Price ($)</th>
-                        <th>Delta (Δ)</th>
-                        <th>Put IV %</th>
-                        <th>Put OI</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {''.join(rows_html)}
-                </tbody>
-            </table>
-        </div>
-        """
-        st.markdown(table_html, unsafe_allow_html=True)
+            <tr>
+                <th>Call OI</th>
+                <th>Call IV %</th>
+                <th>Delta (Δ)</th>
+                <th>Mark Price ($)</th>
+                <th class="strike-hdr">Strike Price</th>
+                <th>Mark Price ($)</th>
+                <th>Delta (Δ)</th>
+                <th>Put IV %</th>
+                <th>Put OI</th>
+            </tr>
+        </thead>
+        <tbody>
+            {"".join(rows_html)}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>"""
+        components.html(full_chain_html, height=520, scrolling=True)
 
 # ── TAB 4: FUNDING ARBITRAGE ANALYZER ──────────────────────────────
 with tab_funding:
